@@ -1,1 +1,1 @@
-int abs(int);
+int abs(int x);

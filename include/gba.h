@@ -31,3 +31,6 @@
 #define RGB_RED         0x001F  // RGB888_TO_RGB555(31, 0, 0)
 #define RGB_GREEN       0x03E0  // RGB888_TO_RGB555(0, 31, 0)
 #define RGB_BLUE        0x7C00  // RGB888_TO_RGB555(0, 0, 31)
+
+typedef uint16_t rgb555_t;   // bitmap modes 3/4/5, or palette RAM entries
+typedef uint8_t  palidx_t;   // 8bpp indexed tile/sprite modes (256 colors)

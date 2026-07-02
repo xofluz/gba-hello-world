@@ -8,11 +8,11 @@ point_t point(int16_t x, int16_t y) {
     return result;
 }
 
-void draw_pixel(point_t point, color_t color) {
+void draw_pixel(point_t point, rgb555_t color) {
     VRAM_PAGE0[point.x + point.y * LCD_WIDTH] = color;
 }
 
-void draw_line_low(point_t start, point_t end, color_t color) {
+void draw_line_low(point_t start, point_t end, rgb555_t color) {
     uint16_t x0 = start.x;
     uint16_t x1 = end.x;
     uint16_t y0 = start.y;
@@ -39,7 +39,7 @@ void draw_line_low(point_t start, point_t end, color_t color) {
     }
 }
 
-void draw_line_high(point_t start, point_t end, color_t color) {
+void draw_line_high(point_t start, point_t end, rgb555_t color) {
     uint16_t x0 = start.x;
     uint16_t x1 = end.x;
     uint16_t y0 = start.y;
@@ -66,7 +66,7 @@ void draw_line_high(point_t start, point_t end, color_t color) {
     }
 }
 
-void draw_line(point_t start, point_t end, color_t color) {
+void draw_line(point_t start, point_t end, rgb555_t color) {
     uint16_t x0 = start.x;
     uint16_t x1 = end.x;
     uint16_t y0 = start.y;
