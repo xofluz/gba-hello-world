@@ -43,4 +43,8 @@ $(OBJDIR):
 clean:
 	rm -rf $(OBJDIR) $(ELF) $(TARGET)
 
-.PHONY: all clean
+# --- Compile flags for LSP ---
+flags:
+	echo $(CFLAGS) | sed -e 's/ /\n/g' > compile_flags.txt
+
+.PHONY: all clean flags
