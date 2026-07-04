@@ -1,18 +1,17 @@
 #include <stdint.h>
 #include "draw.h"
 #include "gba.h"
-#include "math.h"
-
-point_t point(int16_t x, int16_t y) {
-    point_t result = {.x=x, .y=y};
-    return result;
-}
 
 void draw_pixel(point_t point, rgb555_t color) {
+    if (point.x < 0 || point.x >= LCD_WIDTH || point.y < 0 || point.y >= LCD_HEIGHT) {
+        return;
+    }
     VRAM_PAGE0[point.x + point.y * LCD_WIDTH] = color;
 }
 
-void draw_line_low(point_t start, point_t end, rgb555_t color) {
+void draw_line_low(line_t line, rgb555_t color) {
+    point_t start = line.start;
+    point_t end = line.end;
     uint16_t x0 = start.x;
     uint16_t x1 = end.x;
     uint16_t y0 = start.y;
@@ -29,7 +28,8 @@ void draw_line_low(point_t start, point_t end, rgb555_t color) {
     uint16_t y = y0;
 
     for (uint16_t x = x0; x <= x1; x++) {
-        draw_pixel(point(x, y), color);
+        point_t point = {x, y};
+        draw_pixel(point, color);
         if (D > 0) {
             y = y + yi;
             D = D + (2 * (dy - dx));
@@ -39,7 +39,9 @@ void draw_line_low(point_t start, point_t end, rgb555_t color) {
     }
 }
 
-void draw_line_high(point_t start, point_t end, rgb555_t color) {
+void draw_line_high(line_t line, rgb555_t color) {
+    point_t start = line.start;
+    point_t end = line.end;
     uint16_t x0 = start.x;
     uint16_t x1 = end.x;
     uint16_t y0 = start.y;
@@ -56,7 +58,8 @@ void draw_line_high(point_t start, point_t end, rgb555_t color) {
     uint16_t x = x0;
 
     for (uint16_t y = y0; y <= y1; y++) {
-    draw_pixel(point(x, y), color);
+        point_t point = {x, y};
+        draw_pixel(point, color);
         if (D > 0) {
             x = x + xi;
             D = D + (2 * (dx - dy));
@@ -66,21 +69,53 @@ void draw_line_high(point_t start, point_t end, rgb555_t color) {
     }
 }
 
-void draw_line(point_t start, point_t end, rgb555_t color) {
+void draw_line(line_t line, rgb555_t color) {
+    point_t start = line.start;
+    point_t end = line.end;
     uint16_t x0 = start.x;
     uint16_t x1 = end.x;
     uint16_t y0 = start.y;
     uint16_t y1 = end.y;
 
-    if (abs(y1 - y0) < abs(x1 - x0)) {
-        if (x0 > x1)
-            draw_line_low(point(x1, y1), point(x0, y0), color);
-        else
-            draw_line_low(point(x0, y0), point(x1, y1), color);
+    if (__builtin_abs(y1 - y0) < __builtin_abs(x1 - x0)) {
+        if (x0 > x1) {
+            draw_line_low(swap_line(line), color);
+        }
+        else {
+            draw_line_low(line, color);
+        }
     } else {
         if (y0 > y1)
-            draw_line_high(point(x1, y1), point(x0, y0), color);
+            draw_line_high(swap_line(line), color);
         else
-            draw_line_high(point(x0, y0), point(x1, y1), color);
+            draw_line_high(line, color);
+    }
+}
+
+line_t swap_line(line_t line) {
+    line_t result = {
+        .start = line.end,
+        .end = line.start,
+    };
+    return result;
+}
+
+point_t add_points(point_t first, point_t second) {
+    point_t sum = { first.x + second.x, first.y + second.y };
+    return sum;
+}
+
+line_t translate_line(line_t line, point_t offset) {
+    line_t translated_line = {
+        .start = add_points(line.start, offset),
+        .end   = add_points(line.end, offset),
+    };
+    return translated_line;
+}
+
+void draw_shape(shape_t shape, point_t offset, rgb555_t color) {
+    for (size_t i = 0; i < shape.count; i++) {
+        line_t translated_line = translate_line(shape.lines[i], offset);
+        draw_line(translated_line, color);
     }
 }
